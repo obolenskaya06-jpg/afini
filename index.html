@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Afinia Pagos</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* Fondo Oscuro que cubre TODA la pantalla */
+        #info-modal {
+            display: none; 
+            position: fixed; 
+            z-index: 999999; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; 
+            background-color: rgba(0,0,0,0.85); 
+            justify-content: center; 
+            align-items: center;     
+            backdrop-filter: blur(4px); 
+        }
+
+        #info-modal.open-modal {
+            display: flex !important; 
+        }
+
+        .modal-content-box {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 500px; 
+            border-radius: 12px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+            position: relative;
+            text-align: center;
+            animation: modalZoom 0.3s ease-out;
+        }
+
+        @keyframes modalZoom {
+            from {transform: scale(0.7); opacity: 0;}
+            to {transform: scale(1); opacity: 1;}
+        }
+
+        .close-modal-x {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .close-modal-x:hover,
+        .close-modal-x:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-body-img {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .full-width-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+        }
+
+        #btn-accept-modal {
+            background-color: #008eb2;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        #btn-accept-modal:hover {
+            background-color: #006c88;
+        }
+
+        /* =============================================
+           PANTALLA DE CARGA MEJORADA CON TEXTOS DINÁMICOS
+           ============================================= */
+        .full-loader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #001f3f 0%, #003366 50%, #004080 100%);
+            z-index: 99999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+
+        .loader-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+        }
+
+        /* Logo / ícono animado */
+        .loader-icon-ring {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 28px;
+        }
+
+        .loader-icon-ring svg.ring-svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            animation: spinRing 1.4s linear infinite;
+        }
+
+        @keyframes spinRing {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-icon-ring .center-icon {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+            color: #9ccc65;
+            animation: pulseCenterIcon 1.4s ease-in-out infinite;
+        }
+
+        @keyframes pulseCenterIcon {
+            0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            50%       { opacity: 0.7; transform: translate(-50%, -50%) scale(0.88); }
+        }
+
+        /* Barra de progreso */
+        .loader-progress-wrap {
+            width: 100%;
+            max-width: 300px;
+            height: 4px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+
+        .loader-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #9ccc65, #cddc39);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        /* Textos */
+        #loader-title {
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+            line-height: 1.3;
+        }
+
+        #loader-text {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 400;
+            line-height: 1.5;
+            min-height: 40px;
+            transition: opacity 0.4s ease;
+        }
+
+        /* Puntos animados al final del texto */
+        .loader-dots span {
+            display: inline-block;
+            animation: dotBounce 1.2s infinite;
+            font-weight: 700;
+            color: #9ccc65;
+        }
+        .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dotBounce {
+            0%, 80%, 100% { opacity: 0.2; transform: translateY(0); }
+            40%           { opacity: 1;   transform: translateY(-4px); }
+        }
+
+        /* Paso actual */
+        .loader-steps {
+            margin-top: 22px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .loader-step-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            transition: background 0.4s ease, transform 0.4s ease;
+        }
+
+        .loader-step-dot.active {
+            background: #9ccc65;
+            transform: scale(1.35);
+        }
+
+        /* =============================================
+           MODAL SELECTOR DE TIPO DE PAGO
+           ============================================= */
+        #payment-type-modal {
+            display: none;
+            position: fixed;
+            z-index: 999998;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(3px);
+            justify-content: center;
+            align-items: flex-end; /* Sube desde abajo en móvil */
+        }
+
+        #payment-type-modal.open {
+            display: flex;
+            animation: fadeInOverlay 0.25s ease;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .pt-modal-box {
+            background: #fff;
+            width: 100%;
+            max-width: 520px;
+            border-radius: 20px 20px 0 0;
+            padding: 28px 24px 36px;
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
+            animation: slideUpSheet 0.32s cubic-bezier(0.34,1.2,0.64,1);
+            position: relative;
+        }
+
+        /* En pantallas grandes lo centramos como dialog */
+        @media (min-width: 600px) {
+            #payment-type-modal {
+                align-items: center;
+            }
+            .pt-modal-box {
+                border-radius: 16px;
+                max-width: 460px;
+                padding: 32px 32px 36px;
+                animation: modalZoom 0.28s ease-out;
+            }
+        }
+
+        @keyframes slideUpSheet {
+            from { transform: translateY(100%); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        /* Handle / drag bar visual */
+        .pt-handle {
+            width: 40px; height: 4px;
+            background: #ddd;
+            border-radius: 4px;
+            margin: 0 auto 20px;
+        }
+
+        @media (min-width: 600px) {
+            .pt-handle { display: none; }
+        }
+
+        /* Header del modal */
+        .pt-header {
+            margin-bottom: 6px;
+        }
+        .pt-header-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .pt-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #002f5d;
+            line-height: 1.2;
+        }
+        .pt-close-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            padding: 2px;
+            flex-shrink: 0;
+        }
+        .pt-close-btn .material-icons { font-size: 22px; }
+        .pt-close-btn:hover { color: #333; }
+
+        .pt-subtitle {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 18px;
+        }
+
+        /* Resumen de la factura */
+        .pt-invoice-summary {
+            background: #f0f7ff;
+            border: 1px solid #cce0f5;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .pt-inv-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #555;
+        }
+        .pt-inv-row strong {
+            color: #002f5d;
+            font-weight: 700;
+        }
+
+        /* Opciones de pago */
+        .pt-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .pt-option {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            position: relative;
+            background: #fff;
+        }
+
+        .pt-option:hover {
+            border-color: #0074bc;
+            background: #f5faff;
+        }
+
+        .pt-option.selected {
+            border-color: #0074bc;
+            background: #f0f8ff;
+            box-shadow: 0 0 0 3px rgba(0,116,188,0.12);
+        }
+
+        /* Ícono de la opción */
+        .pt-opt-icon {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px;
+        }
+        .pt-opt-icon.total-icon  { background: #e8f5e9; color: #2e7d32; }
+        .pt-opt-icon.mes-icon    { background: #e3f2fd; color: #1565c0; }
+        .pt-opt-icon.abono-icon  { background: #fff8e1; color: #f57f17; }
+
+        /* Textos */
+        .pt-opt-body { flex: 1; }
+        .pt-opt-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 2px;
+        }
+        .pt-opt-desc {
+            font-size: 12px;
+            color: #888;
+            line-height: 1.35;
+        }
+        .pt-opt-amount {
+            font-size: 15px;
+            font-weight: 700;
+            color: #002f5d;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        /* Indicador de selección */
+        .pt-radio-circle {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.2s;
+        }
+        .pt-option.selected .pt-radio-circle {
+            border-color: #0074bc;
+        }
+        .pt-radio-inner {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #0074bc;
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s;
+            transform: scale(0.5);
+        }
+        .pt-option.selected .pt-radio-inner {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Input de abono */
+        .pt-abono-input-wrap {
+            display: none;
+            margin-top: 10px;
+            padding: 12px 16px;
+            background: #fffbf0;
+            border: 1px solid #ffe082;
+            border-radius: 8px;
+            gap: 8px;
+            align-items: center;
+        }
+        .pt-abono-input-wrap.show {
+            display: flex;
+        }
+        .pt-abono-prefix {
+            font-weight: 700;
+            color: #555;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+        .pt-abono-input {
+            border: none;
+            border-bottom: 2px solid #f9a825;
+            background: transparent;
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            width: 100%;
+            outline: none;
+            padding: 4px 0;
+        }
+        .pt-abono-input::placeholder { color: #ccc; font-weight: 400; font-size: 15px; }
+        .pt-abono-hint {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        /* Botón confirmar */
+        #btn-confirm-payment {
+            width: 100%;
+            background: #002f5d;
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        #btn-confirm-payment:hover  { background: #004080; }
+        #btn-confirm-payment:active { transform: scale(0.98); }
+        #btn-confirm-payment:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        /* Tag de "recomendado" */
+        .pt-badge {
+            position: absolute;
+            top: -1px; right: 12px;
+            background: #002f5d;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 0 0 6px 6px;
+            letter-spacing: 0.3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="info-modal">
+        <div class="modal-content-box">
+            <span class="close-modal-x" id="btn-close-x">&times;</span>
+            <div class="modal-body-img">
+                <img src="img/banner.jpg" style="width: 80%;" alt="Información Importante" class="full-width-img" 
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='<h3 style=\'color:#333\'>Aviso Importante</h3><p>Por favor tenga a mano su factura para consultar el NIC.</p>'">
+            </div>
+            <div class="modal-footer-btn">
+                <button id="btn-accept-modal">ACEPTAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- ============================================================
+         PANTALLA DE CARGA MEJORADA
+         ============================================================ -->
+    <div id="full-loader" class="full-loader hidden">
+        <div class="loader-content">
+
+            <!-- Ícono animado con anillo SVG -->
+            <div class="loader-icon-ring">
+                <svg class="ring-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="40" cy="40" r="36" stroke="rgba(255,255,255,0.1)" stroke-width="5"/>
+                    <path d="M40 4 A36 36 0 0 1 76 40" stroke="#9ccc65" stroke-width="5" stroke-linecap="round"/>
+                </svg>
+                <span class="material-icons center-icon">bolt</span>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div class="loader-progress-wrap">
+                <div class="loader-progress-bar" id="loader-progress-bar"></div>
+            </div>
+
+            <h2 id="loader-title">Conectando con Afinia...</h2>
+            <p id="loader-text">
+                Iniciando consulta segura
+                <span class="loader-dots">
+                    <span>.</span><span>.</span><span>.</span>
+                </span>
+            </p>
+
+            <!-- Indicadores de paso -->
+            <div class="loader-steps">
+                <div class="loader-step-dot active" id="step-dot-0"></div>
+                <div class="loader-step-dot" id="step-dot-1"></div>
+                <div class="loader-step-dot" id="step-dot-2"></div>
+                <div class="loader-step-dot" id="step-dot-3"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL SELECTOR TIPO DE PAGO
+         ============================================================ -->
+    <div id="payment-type-modal">
+        <div class="pt-modal-box">
+            <div class="pt-handle"></div>
+
+            <div class="pt-header">
+                <div class="pt-header-top">
+                    <p class="pt-title">¿Cuánto deseas pagar?</p>
+                    <button class="pt-close-btn" id="pt-close-btn">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <p class="pt-subtitle">Elige una opción de pago para esta factura</p>
+            </div>
+
+            <!-- Resumen factura -->
+            <div class="pt-invoice-summary">
+                <div class="pt-inv-row">
+                    <span>NIC</span>
+                    <strong id="pt-nic-label">—</strong>
+                </div>
+                <div class="pt-inv-row">
+                    <span>Período</span>
+                    <strong id="pt-periodo-label">—</strong>
+                </div>
+                <div class="pt-inv-row">
+                    <span>Vence</span>
+                    <strong id="pt-vence-label">—</strong>
+                </div>
+            </div>
+
+            <!-- Opciones -->
+            <div class="pt-options">
+
+                <!-- Opción Total -->
+                <div class="pt-option selected" data-type="total" id="opt-total">
+                    <div class="pt-radio-circle"><div class="pt-radio-inner"></div></div>
+                    <div class="pt-opt-icon total-icon">
+                        <span class="material-icons">check_circle</span>
+                    </div>
+                    <div class="pt-opt-body">
+                        <div class="pt-opt-label">Pago Total</div>
+                        <div class="pt-opt-desc">Saldo completo incluye mora y cuotas anteriores</div>
+                    </div>
+                    <div class="pt-opt-amount" id="pt-amount-total">$ —</div>
+                    <div class="pt-badge">RECOMENDADO</div>
+                </div>
+
+                <!-- Opción Mes -->
+                <div class="pt-option" data-type="mes" id="opt-mes">
+                    <div class="pt-radio-circle"><div class="pt-radio-inner"></div></div>
+                    <div class="pt-opt-icon mes-icon">
+                        <span class="material-icons">receipt_long</span>
+                    </div>
+                    <div class="pt-opt-body">
+                        <div class="pt-opt-label">Solo este mes</div>
+                        <div class="pt-opt-desc">Valor de la factura del período actual</div>
+                    </div>
+                    <div class="pt-opt-amount" id="pt-amount-mes">$ —</div>
+                </div>
+
+                <!-- Opción Abono -->
+                <div class="pt-option" data-type="abono" id="opt-abono">
+                    <div class="pt-radio-circle"><div class="pt-radio-inner"></div></div>
+                    <div class="pt-opt-icon abono-icon">
+                        <span class="material-icons">edit</span>
+                    </div>
+                    <div class="pt-opt-body">
+                        <div class="pt-opt-label">Abono parcial</div>
+                        <div class="pt-opt-desc">Ingresa el monto que puedes pagar ahora</div>
+                    </div>
+                    <div class="pt-opt-amount" id="pt-amount-abono">$ —</div>
+                </div>
+
+            </div>
+
+            <!-- Input abono (solo visible si se selecciona "Abono") -->
+            <div class="pt-abono-input-wrap" id="pt-abono-input-wrap">
+                <span class="pt-abono-prefix">$</span>
+                <div style="flex:1;">
+                    <input type="number" class="pt-abono-input" id="pt-abono-value"
+                           placeholder="0" min="1000">
+                    <div class="pt-abono-hint">Monto mínimo: $1.000</div>
+                </div>
+            </div>
+
+            <!-- Botón confirmar -->
+            <button id="btn-confirm-payment">CONTINUAR CON EL PAGO</button>
+        </div>
+    </div>
+
+    <header class="main-header">
+        <div class="header-left">
+            <button class="menu-btn" id="menu-toggle">
+                <span class="material-icons">menu</span>
+            </button>
+            <div class="logo-container">
+                <img src="img/logo-afinia.png" alt="Afinia Logo" class="header-logo">
+            </div>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item">
+                    <span class="material-icons">home</span>
+                    <span class="nav-text">INICIO PORTAL DE PAGOS</span>
+                </a>
+                <a href="#" class="nav-item active">
+                    <span class="material-icons">credit_card</span>
+                    <span class="nav-text">PAGAR</span>
+                </a>
+                <a href="#" class="nav-item"><span class="material-icons">lock</span><span class="nav-text">RECUPERAR CUENTA</span></a>
+                <a href="#" class="nav-item"><span class="material-icons">lock_open</span><span class="nav-text">RECUPERAR CONTRASEÑA</span></a>
+                <a href="#" class="nav-item"><span class="material-icons">search</span><span class="nav-text">DUPLICADOS</span></a>
+                <a href="#" class="nav-item"><span class="material-icons">person_add</span><span class="nav-text">REGISTRO USUARIO</span></a>
+                <div class="nav-divider"></div>
+                <a href="#" class="nav-item has-arrow">
+                    <div class="nav-content"><span class="material-icons">description</span><span class="nav-text">FACTURA DIGITAL</span></div>
+                    <span class="material-icons arrow-icon">chevron_left</span>
+                </a>
+                <a href="#" class="nav-item"><span class="material-icons">edit</span><span class="nav-text">PQR'S</span></a>
+                <a href="#" class="nav-item"><span class="material-icons">monetization_on</span><span class="nav-text">RECARGA</span></a>
+            </nav>
+            <div class="sidebar-footer">© 2024 FACTURE SAS BY ESTELA</div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header-full-width">
+                <h1 class="page-title">PAGAR</h1>
+            </div>
+
+            <div class="scrollable-body">
+                <div class="inner-content">
+                    <div class="banner-wrapper">
+                        <img src="img/imgi_3_Banner - Pagar.jpg" alt="Banner" class="banner-img">
+                    </div>
+
+                    <p class="info-text">
+                        Te invitamos a registrarte en nuestra plataforma para que disfrutes de todas nuestras funcionalidades.
+                    </p>
+
+                    <div class="form-card">
+                        <form id="payment-form">
+                            
+                            <div class="form-row nic-row">
+                                <div class="input-group nic-input">
+                                    <label class="input-label">	N° de Factura <span class="required">*</span></label>
+                                    <input type="text" class="material-input" value="" id="input-nic" placeholder="Ingrese su NIC (Ej. 6926391136)">
+                                </div>
+                                
+                                <div class="btn-wrapper-nic">
+                                    <button type="button" class="btn-primary" id="btn-pago-mes">BUSCAR FACTURAS</button>
+                                    <div class="spinner-small hidden" id="spinner-nic"></div>
+                                </div>
+                            </div>
+
+                            <div id="hidden-fields" class="hidden-section hidden">
+    
+                                <div class="filters-container">
+                                    <div class="nic-label-group">
+                                        <span class="nic-static-label">NIC</span>
+                                        <div class="nic-line"></div>
+                                    </div>
+                                    
+                                    <div class="checkbox-group">
+                                        <label class="custom-checkbox-label">
+                                            <input type="checkbox" disabled>
+                                            <span class="checkmark-box"></span>
+                                            Mercados Especiales
+                                        </label>
+                                        <label class="custom-checkbox-label">
+                                            <input type="checkbox" disabled>
+                                            <span class="checkmark-box"></span>
+                                            Pendiente de cobro
+                                        </label>
+                                        <label class="custom-checkbox-label">
+                                            <input type="checkbox" disabled>
+                                            <span class="checkmark-box"></span>
+                                            Facturas en reclamo
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="table-scroll-wrapper">
+                                    <table class="afinia-table-pro">
+                                        <thead>
+                                            <tr>
+                                                <th class="col-check"><div class="header-check"></div></th>
+                                                <th class="col-icons"></th>
+                                                
+                                                <th class="col-valor">Valor a Pagar</th>
+                                                <th class="col-saldo">Valor Mes</th>
+                                                
+                                                <th class="col-estado">Estado <i class="tiny-arrow up"></i></th>
+                                                <th class="col-factura">Referencia</th>
+                                                <th class="col-nic">NIC <i class="tiny-arrow up"></i></th>
+                                                <th class="col-periodo">Período <i class="tiny-arrow down"></i></th>
+                                                <th class="col-vence">Vence</th>
+                                                <th class="col-consumo">Consumo (KWh)</th>
+                                                <th class="col-accion sticky-col">Accion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="invoice-body">
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="table-footer-info">
+                                    <div class="pagination-icons">
+                                        <span class="material-icons disabled">first_page</span>
+                                        <span class="material-icons disabled">chevron_left</span>
+                                        <span class="page-num">1</span>
+                                        <span class="material-icons disabled">chevron_right</span>
+                                        <span class="material-icons disabled">last_page</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <footer class="seo-section">
+                        <p class="powered">Powered By Facture una Marca de Estela</p>
+                        <div class="seo-links">
+                            <h2>Afinia Pagar Factura - Sistema Oficial de Afinia Pagos</h2>
+                            <h3>¿Cómo Pagar tu Factura de Afinia?</h3>
+                            <p><strong>Afinia pagar factura</strong> es el sistema oficial...</p>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="js/index.js"></script>
+</body>
+</html>
