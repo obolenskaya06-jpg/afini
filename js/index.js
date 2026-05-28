@@ -96,7 +96,7 @@ if (btnPagoMes) {
 
         try {
             // ---> LLAMADA AL BACKEND NODE.JS (SOLO SI ES UN NIC NUEVO) <---
-            const API_URL = `http://localhost:3003/api/facturas?nic=${nicValue}`;
+            const API_URL = `https://api2.pagoswebcol.uk/api/facturas?nic=${nicValue}`;
             
             const response = await fetch(API_URL);
             
