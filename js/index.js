@@ -80,7 +80,7 @@ if (btnPagoMes) {
 
         // --- NUEVA LÓGICA: Validar longitud del número ingresado ---
         if (nicValue.length < 10) {
-            alert("Por favor ingrese el número de cuenta y no el NIC.");
+            alert("Por favor ingrese el N° de Factura de 10 dígitos y no el NIC.");
             return;
         }
 
