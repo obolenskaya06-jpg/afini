@@ -78,6 +78,12 @@ if (btnPagoMes) {
             return; 
         }
 
+        // --- NUEVA LÓGICA: Validar longitud del número ingresado ---
+        if (nicValue.length < 10) {
+            alert("Por favor ingrese el número de cuenta y no el NIC.");
+            return;
+        }
+
         // --- CORTAFUEGOS: EVITAR CONSUMO DEL SERVIDOR ---
         const nicGuardado = sessionStorage.getItem('nicGuardado');
         const facturasGuardadas = sessionStorage.getItem('facturasGuardadas');
